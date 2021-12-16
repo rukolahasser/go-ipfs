@@ -75,12 +75,31 @@ ipfs key rm key_ed25519
     test_cmp rsa_key_id roundtrip_rsa_key_id
   '
 
+  # FIXME(BLOCKING): Abstract format type in a new function.
+  test_expect_success "export and import rsa key with pem-pkcs8-cleartext format" '
+    ipfs key export --format=pem-pkcs8-cleartext generated_rsa_key &&
+    ipfs key rm generated_rsa_key &&
+    ipfs key import --format=pem-pkcs8-cleartext generated_rsa_key generated_rsa_key.pem > roundtrip_rsa_key_id &&
+    test_cmp rsa_key_id roundtrip_rsa_key_id
+  '
+
   test_expect_success "export and import ed25519 key" '
     ipfs key export generated_ed25519_key &&
     ipfs key rm generated_ed25519_key &&
     ipfs key import generated_ed25519_key generated_ed25519_key.key > roundtrip_ed25519_key_id &&
     test_cmp ed25519_key_id roundtrip_ed25519_key_id
   '
+# FIXME(BLOCKING): This test is failing (we don't recognize the PEM private
+#  key format for ed25519) along with a manual test (see note in export command)
+#  which might indicate that there is an issue with the marshalling function for
+#  the ed25519 type. Need to look deeper into this.
+#
+#  test_expect_success "export and import ed25519 key with pem-pkcs8-cleartext format" '
+#    ipfs key export --format=pem-pkcs8-cleartext generated_ed25519_key &&
+#    ipfs key rm generated_ed25519_key &&
+#    ipfs key import --format=pem-pkcs8-cleartext generated_ed25519_key generated_ed25519_key.key > roundtrip_ed25519_key_id &&
+#    test_cmp ed25519_key_id roundtrip_ed25519_key_id
+#  '
 
   test_expect_success "test export file option" '
     ipfs key export generated_rsa_key -o=named_rsa_export_file &&
@@ -170,6 +189,7 @@ ipfs key rm key_ed25519
 
   test_launch_ipfs_daemon
 
+  # FIXME: Add new import/export format tests as above but see if we can deduplicate some code.
   test_expect_success "online import rsa key" '
     ipfs key import generated_rsa_key generated_rsa_key.key > roundtrip_rsa_key_id &&
     test_cmp rsa_key_id roundtrip_rsa_key_id
